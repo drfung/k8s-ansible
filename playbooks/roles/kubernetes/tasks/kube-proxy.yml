@@ -1,0 +1,36 @@
+---
+
+#- name: set pamc cloud repo
+#  template: src=pamccloudrepo.repo.j2 dest=/etc/yum.repos.d/pamccloudrepo.repo
+#  tags: install
+
+
+- name: Install kube-proxy
+  copy:
+    src=kube-proxy
+    dest=/usr/local/bin
+    mode=0755
+  tags: install
+
+- name: make sure the kube-proxy work directory exits
+  file:
+    path: /var/lib/kube-proxy
+    state: directory
+    mode: u=rwx,g=r-x,o=r-x
+
+- name: update kube-proxy.service
+  template: src=kube-proxy.service dest=/usr/lib/systemd/system/kube-proxy.service
+  notify:
+    - reload systemd
+    - kube-proxy restart service
+  tags: configure
+
+- name: reload systemd
+  command: systemctl daemon-reload
+
+- name: Start kube-proxy
+  service: name=kube-proxy state=started
+  tags: configure
+
+- name: Enable kube-proxy
+  service: name=kube-proxy enabled=yes

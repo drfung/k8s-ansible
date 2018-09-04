@@ -1,0 +1,17 @@
+---
+- name: Deploy masters
+  hosts: masters
+  become: yes
+  roles:
+    - { role: system-init }
+    - { role: kubernetes-tls }
+    - { role: etcd }
+    - { role: kubernetes, kube_role: kube-apiserver }
+    - { role: kubernetes, kube_role: kube-controller-manager }
+    - { role: kubernetes, kube_role: kube-scheduler }
+    - { role: kubernetes, kube_role: kubectl }
+
+  tags:
+    - master
+
+

@@ -1,0 +1,37 @@
+---
+
+- name: create harborsecret
+  shell: "kubectl create secret docker-registry harborsecret --docker-server=registry.pamc.xyz:4443 --docker-username=admin --docker-password=Harbor1234 --docker-email=admin@pamc.com"
+  when: inventory_hostname == groups['masters'][0] and create_harbor_secret == true
+
+- name: make sure the kube-addons yaml file directory exits
+  file:
+    path: /root/kube-addons/
+    state: directory
+    mode: u=rwx,g=r-x,o=r-x
+  when: inventory_hostname == groups['masters'][0]
+
+- name: Copy dns and dash yml to master[0]
+  copy: src={{ item }} dest=/root/kube-addons/
+  with_items:
+    - "kubedns-cm.yaml"
+    - "kubedns-sa.yaml"
+    - "kubedns-svc.yaml"
+    - "kubedns-controller.yaml"
+    - "dash.yaml"
+  when: inventory_hostname == groups['masters'][0]
+
+- name: Create a kubernetes namespace
+  kubernetes:
+    api_endpoint: 123.45.67.89
+    insecure: true
+    file_reference: "{{ item }}"
+    state: present
+  with_items:
+    - "/root/kube-addons/kubedns-cm.yaml"
+    - "/root/kube-addons/kubedns-sa.yaml"
+    - "/root/kube-addons/kubedns-svc.yaml"
+    - "/root/kube-addons/kubedns-controller.yaml"
+    - "/root/kube-addons/dash.yaml"
+  run_once: true
+  when: inventory_hostname == groups['masters'][0]

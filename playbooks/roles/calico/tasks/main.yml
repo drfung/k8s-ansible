@@ -1,0 +1,22 @@
+---
+
+- name: Get Etcd ca cert
+  shell: cat /etc/kubernetes/certs/ca.crt | base64 -w 0
+  register: etcd_ca
+
+- name: Get Etcd cert
+  shell: cat /etc/kubernetes/certs/server.crt | base64 -w 0
+  register: etcd_cert
+
+- name: Get Etcd key
+  shell: cat /etc/kubernetes/certs/server.key| base64 -w 0
+  register: etcd_key
+
+- name: calico.yaml
+  template: src=calico.yaml dest=/tmp/calico/
+
+- name: calico rbac
+  copy: src=calico-rbac.yaml dest=/tmp/calico/
+
+- name: Install Calico
+  command: kubectl apply -f /tmp/calico

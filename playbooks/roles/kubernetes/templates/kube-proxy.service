@@ -1,0 +1,17 @@
+[Unit]
+Description=Kubernetes Kube-Proxy Server
+Documentation=https://github.com/GoogleCloudPlatform/kubernetes
+After=network.target
+
+[Service]
+WorkingDirectory=/var/lib/kube-proxy
+ExecStart=/usr/local/bin/kube-proxy \
+  --bind-address={{ inventory_hostname }} \
+  --cluster-cidr=10.254.0.0/16 \
+  --hostname-override={{ inventory_hostname }} \
+  --iptables-sync-period=30s \
+  --kubeconfig={{ kube_conf_file }} \
+  --v=2
+Restart=on-failure
+RestartSec=5
+LimitNOFILE=65536

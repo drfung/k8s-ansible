@@ -1,0 +1,33 @@
+[Unit]
+Description=Kubernetes Controller Manager
+Documentation=https://github.com/GoogleCloudPlatform/kubernetes
+
+[Service]
+ExecStart=/usr/local/bin/kube-controller-manager \
+  --kubeconfig=/root/.kube/config \
+  --address=127.0.0.1 \
+  --cluster-cidr=10.244.0.0/16 \
+  --allocate-node-cidrs=true \
+  --service-cluster-ip-range=10.254.0.0/16 \
+  --contention-profiling \
+  --large-cluster-size-threshold=100 \
+  --node-eviction-rate=0.1 \
+  --secondary-node-eviction-rate=0.01 \
+  --unhealthy-zone-threshold=0.55 \
+  --node-monitor-grace-period=1m0s \
+  --node-startup-grace-period=2m0s \
+  --pod-eviction-timeout=5m0s \
+  --resource-quota-sync-period=1m0s \
+  --terminated-pod-gc-threshold=35000 \
+  --service-account-private-key-file=/etc/kubernetes/certs/server.key \
+  --root-ca-file=/etc/kubernetes/certs/ca.crt \
+  --cluster-signing-cert-file=/etc/kubernetes/certs/server.crt \
+  --cluster-signing-key-file=/etc/kubernetes/certs/server.key \
+  --leader-elect=true \
+  --v=2
+
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

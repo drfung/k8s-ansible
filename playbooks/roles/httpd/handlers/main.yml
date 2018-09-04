@@ -1,0 +1,13 @@
+---
+- name: reload systemd
+  command: systemctl daemon-reload
+
+- name: httpd start service
+  service: name=httpd state=started
+
+- name: httpd stopped service
+  service: name=httpd state=stopped
+
+- name: httpd restart service
+  service: name=httpd state=restarted
+

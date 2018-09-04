@@ -1,0 +1,19 @@
+---
+- name: reload systemd
+  command: systemctl daemon-reload
+
+- name: kubelet restart service
+  service: name=kubelet state=restarted
+
+- name: kube-proxy restart service
+  service: name=kube-proxy state=restarted
+
+- name: kube-apiserver restart service
+  service: name=kube-apiserver state=restarted
+
+- name: kube-controller-manager restart service
+  service: name=kube-controller-manager state=restarted
+
+- name: kube-scheduler restart service
+  service: name=kube-scheduler state=restarted
+

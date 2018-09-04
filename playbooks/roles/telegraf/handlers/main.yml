@@ -1,0 +1,13 @@
+---
+- name: reload systemd
+  command: systemctl daemon-reload
+
+- name: telegraf start service
+  service: name=telegraf state=started
+
+- name: telegraf stopped service
+  service: name=telegraf state=stopped
+
+- name: telegraf restart service
+  service: name=telegraf state=restarted
+

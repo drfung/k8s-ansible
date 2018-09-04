@@ -1,0 +1,22 @@
+---
+
+- include: kubelet.yml
+  when: kube_role == "kubelet"
+
+- include: kube-proxy.yml
+  when: kube_role == "kube-proxy"
+
+- include: kube-apiserver.yml
+  when: kube_role == "kube-apiserver"
+
+- include: kube-controller-manager.yml
+  when: kube_role == "kube-controller-manager"
+
+- include: kube-scheduler.yml
+  when: kube_role == "kube-scheduler"
+
+- include: kubectl.yml
+  when: kube_role == "kubectl"
+
+- include: load_images.yml
+  when: kube_role == "load_images"

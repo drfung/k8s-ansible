@@ -1,0 +1,42 @@
+[Unit]
+Description=Kubernetes API Server
+Documentation=https://github.com/GoogleCloudPlatform/kubernetes
+After=network.target
+
+[Service]
+ExecStart=/usr/local/bin/kube-apiserver \
+  --admission-control=NamespaceLifecycle,LimitRanger,ServiceAccount,PersistentVolumeLabel,DefaultStorageClass,ResourceQuota,DefaultTolerationSeconds \
+  --advertise-address={{ inventory_hostname }} \
+  --secure-port=6443 \
+  --insecure-bind-address={{ inventory_hostname }} \
+  --insecure-port=8080 \
+  --audit-log-maxage=30 \
+  --audit-log-maxbackup=50 \
+  --audit-log-maxsize=200 \
+  --audit-log-path=/var/log/kube-apiserver/audit.log \
+  --authorization-mode=AlwaysAllow \
+  --bind-address={{ inventory_hostname }} \
+  --client-ca-file={{ kube_cert_dir }}/ca.crt \
+  --enable-garbage-collector \
+  --enable-swagger-ui \
+  --etcd-quorum-read=true \
+  --etcd-cafile={{ kube_cert_dir }}/ca.crt \
+  --etcd-certfile={{ kube_cert_dir }}/server.crt \
+  --etcd-keyfile={{ kube_cert_dir }}/server.key \
+  --etcd-servers={{ etcd_cluster }} \
+  --service-account-key-file={{ kube_cert_dir }}/ca.crt \
+  --tls-cert-file={{ kube_cert_dir }}/server.crt \
+  --tls-private-key-file={{ kube_cert_dir }}/server.key \
+  --service-cluster-ip-range=10.254.0.0/16 \
+  --service-node-port-range=8400-9999 \
+  --token-auth-file={{ kube_config_dir }}/tokens/known_tokens.csv \
+  --apiserver-count=3 \
+  --v=2
+
+Restart=on-failure
+RestartSec=5
+Type=notify
+LimitNOFILE=65536
+
+[Install]
+WantedBy=multi-user.target

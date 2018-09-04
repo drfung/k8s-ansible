@@ -1,0 +1,29 @@
+---
+
+- name: Install telegraf
+  yum: name={{ item }}
+  with_items:
+    - telegraf
+  tags: install
+
+- name: Make sure the telegraf config directory exits
+  file:
+    path: /etc/telegraf/
+    state: directory
+    mode: 0755
+
+- name: Copy systemd unit for telegraf
+  copy: src=telegraf.conf dest=/etc/telegraf/telegraf.conf
+  notify:
+      - reload systemd
+      - telegraf restart service
+
+- name: reload systemd
+  command: systemctl daemon-reload
+
+- name: Start telegraf
+  service: name=telegraf state=started
+  tags: configure
+
+- name: Enable telegraf
+  service: name=telegraf enabled=yes

@@ -1,0 +1,7 @@
+---
+- name: copy ha certs to local
+  hosts: masters[0]
+  roles:
+    - { role: calico }
+  tags:
+    - calico

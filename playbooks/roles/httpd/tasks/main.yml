@@ -1,0 +1,29 @@
+---
+
+- name: Install httpd
+  yum: name={{ item }}
+  with_items:
+    - httpd
+  tags: install
+
+- name: make sure the harbor cert key directory exits
+  file:
+    path: "/var/www/html"
+    state: directory
+    mode: u=rwx,g=rwx,o=rwx
+
+- name: Copy systemd unit for telegraf
+  copy: src=pamc_yum.conf dest=/etc/httpd/conf.d/pamc_yum.conf
+  notify:
+      - reload systemd
+      - httpd restart service
+
+- name: reload systemd
+  command: systemctl daemon-reload
+
+- name: Start httpd
+  service: name=httpd state=started
+  tags: configure
+
+- name: Enable httpd
+  service: name=httpd enabled=yes

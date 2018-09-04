@@ -1,0 +1,11 @@
+---
+- name: reload systemd
+  command: systemctl daemon-reload
+
+#- name: etcd2 restart service
+#  service: name=etcd2 state=restarted
+#  when: etcd2_service_file_stat_result.stat.exists == True
+
+- name: etcd restart service
+  service: name=etcd state=restarted
+  when: etcd_service_file_stat_result.stat.exists == True

@@ -1,0 +1,30 @@
+---
+- name: copy ha certs to local
+  hosts: ha[0]
+  tasks:
+    - name: fetch files
+      find:
+        paths: "{{ ha_cert_dir }}/"
+        patterns: "*"
+        recurse: no
+      register: file_2_fetch
+    
+    - name: fech local
+      fetch:
+        src: "{{ item.path }}/"
+        dest: "{{ ha_cert_dir }}"
+        flat: yes
+      with_items: "{{ file_2_fetch.files }}"
+
+- name: Deploy node
+  hosts: nodes
+  become: yes
+  roles:
+    - { role: system-init }
+    - { role: docker }
+    - { role: kubernetes-node-tls }
+    - { role: kubernetes, kube_role: load_images }
+    - { role: kubernetes, kube_role: kubelet }
+    - { role: kubernetes, kube_role: kube-proxy }
+  tags:
+    - nodes

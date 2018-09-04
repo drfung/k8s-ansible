@@ -1,0 +1,22 @@
+---
+
+- name: Install haproxy
+  yum: name=haproxy
+  tags: install
+
+- name: update haproxy config
+  template: src=haproxy.cfg dest=/etc/haproxy/haproxy.cfg
+  notify:
+    - reload systemd
+    - haproxy restart service
+  tags: configure
+
+- name: reload systemd
+  command: systemctl daemon-reload
+
+- name: Start haproxy
+  service: name=haproxy state=started
+  tags: configure
+
+- name: Enable haproxy
+  service: name=haproxy enabled=yes

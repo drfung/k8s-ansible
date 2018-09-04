@@ -1,0 +1,30 @@
+---
+
+- name: Install keepalived
+  yum: name=keepalived
+  tags: install
+
+- name: update check haproxy script
+  copy: src=check_haproxy.sh dest=/etc/keepalived/check_haproxy.sh
+  mode: 0755
+  notify:
+    - reload systemd
+    - keepalived restart service
+  tags: configure
+
+- name: update keepalived config
+  template: src=keepalived.conf dest=/etc/keepalived/keepalived.conf
+  notify:
+    - reload systemd
+    - keepalived restart service
+  tags: configure
+
+- name: reload systemd
+  command: systemctl daemon-reload
+
+- name: Start keepalived
+  service: name=keepalived state=started
+  tags: configure
+
+- name: Enable keepalived
+  service: name=keepalived enabled=yes

@@ -1,0 +1,41 @@
+---
+
+- name: Copy docker
+  copy: src="{{ item }}" dest=/tmp/
+  with_items:
+    - "{{ docker_rpms }}"
+  tags: copy_docker_file
+
+- name: Install docker
+  yum: name="/tmp/{{ item }}"
+  with_items:
+    - "{{ docker_rpms }}"
+
+- name: make sure the docker config directory exits
+  file:
+    path: "{{ docker_confi_dir }}"
+    state: directory
+    mode: 0755
+
+- name: Write docker daemon.conf file
+  copy:
+    src: daemon.json
+    dest: "{{ docker_confi_dir }}/daemon.json"
+  tags: configure
+
+- name: update docker.service
+  copy: src=docker.service dest=/usr/lib/systemd/system/docker.service
+  notify:
+    - reload systemd
+    - docker restart service
+  tags: configure
+
+- name: reload systemd
+  command: systemctl daemon-reload
+
+- name: Start Docker
+  service: name=docker state=started
+  tags: configure
+
+- name: Enable Docker
+  service: name=docker enabled=yes

@@ -1,0 +1,91 @@
+---
+- name: make sure the kube config directory exits
+  file:
+    path: "{{ kube_conf_dir }}"
+    state: directory
+    mode: u=rwx,g=r-x,o=r-x
+
+- name: Write kube config file
+  template: src=config.j2 dest="{{ kube_conf_file }}"
+
+- name: set  bootstrap kubeconfig
+  template: src=config.j2 dest=/etc/kubernetes/bootstrap.kubeconfig
+
+#- name: make sure the harbor cert key directory exits
+#  file:
+#    path: "{{ harbor_cert_dir }}"
+#    state: directory
+#    mode: u=rwx,g=r-x,o=r-x
+
+#- name: Write harbor ca file
+#  copy:
+#    src: harbor-ca.crt
+#    dest: "{{ harbor_cert_dir }}/ca.crt"
+#  tags: configure
+
+
+##############copy ha cert to each master #########################
+- name: make sure the ha certificate directory exits
+  file:
+    path={{ ha_cert_dir }}
+    state=directory
+    mode=o-rwx
+    group={{ kube_cert_group }}
+
+- name: Read back the ha CA certificate
+  slurp:
+    src: "{{ ha_cert_dir }}/ca.crt"
+  register: ha_ca_cert
+  run_once: true
+  delegate_to: "{{ groups['ha'][0] }}"
+
+- name: Register the ha CA certificate as a fact so it can be used later
+  set_fact:
+    ha_ca_cert: "{{ ha_ca_cert.content|b64decode }}"
+
+- name: Place CA certificate and kube_cfg credentials everywhere
+  copy:
+    content: "{{ ha_ca_cert }}"
+    dest: "{{ ha_cert_dir }}/ca.crt"
+    group: "{{ kube_cert_group }}"
+    owner: "kube"
+    mode: 0440
+
+- name: Read back the server  cert
+  slurp:
+    src: "{{ ha_cert_dir }}/server.crt"
+  register: ha_server_crt
+#  run_once: true
+  delegate_to: "{{ groups['ha'][0] }}"
+
+- name: Register the server cert as a fact so it can be used later
+  set_fact:
+    ha_server_crt: "{{ ha_server_crt.content|b64decode }}"
+
+- name: Place server cert credentials everywhere
+  copy:
+    content: "{{ ha_server_crt }}"
+    dest: "{{ ha_cert_dir }}/server.crt"
+    group: "{{ kube_cert_group }}"
+    owner: "kube"
+    mode: 0440
+
+- name: Read back the server key
+  slurp:
+    src: "{{ ha_cert_dir }}/server.key"
+  register: ha_server_key
+  run_once: true
+  delegate_to: "{{ groups['ha'][0] }}"
+
+- name: Register the server key as a fact so it can be used later
+  set_fact:
+    ha_server_key: "{{ ha_server_key.content|b64decode }}"
+
+- name: Place server cert credentials everywhere
+  copy:
+    content: "{{ ha_server_key }}"
+    dest: "{{ ha_cert_dir }}/server.key"
+    group: "{{ kube_cert_group }}"
+    owner: "kube"
+    mode: 0440
+

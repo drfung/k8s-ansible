@@ -1,0 +1,12 @@
+---
+- name: Deploy ha
+  hosts: ha
+  become: yes
+  roles:
+    - { role: system-init }
+    - { role: haproxy-tls }
+    - { role: haproxy }
+    - { role: keepalived }
+
+  tags:
+    - master

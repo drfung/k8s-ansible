@@ -1,0 +1,21 @@
+apiVersion: v1
+clusters:
+- cluster:
+    certificate-authority: {{ ha_cert_dir }}/ca.crt
+    server: https://{{ kube_vip }}:{{ kube_api_secure_port }}
+
+  name: default-cluster
+contexts:
+- context:
+    cluster: default-cluster
+    namespace: default
+    user: default-auth
+  name: default-context
+current-context: default-context
+kind: Config
+preferences: {}
+users:
+- name: default-auth
+  user:
+    client-certificate: {{ ha_cert_dir }}/server.crt
+    client-key: {{ ha_cert_dir }}/server.key

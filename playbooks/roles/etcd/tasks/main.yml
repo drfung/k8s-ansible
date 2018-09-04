@@ -1,0 +1,41 @@
+---
+
+- name: Install etcd
+  yum: name=etcd
+  tags: install
+
+- name: make sure the etcd config directory exits
+  file:
+    path: /etc/etcd/
+    state: directory
+    mode: u=rwx,g=r-x,o=r-x
+
+- name: make sure the etcd data  directory exits
+  file:
+    path: /var/lib/etcd/default.etcd
+    state: directory
+    mode: u=rwx,g=r-x,o=r-x
+
+
+- name: update etcd conf
+  template: src=etcd.conf.j2 dest=/etc/etcd/etcd.conf
+  notify:
+      - etcd restart service
+  tags: configure
+
+- name: update etcd.service
+  template: src=etcd.service dest=/usr/lib/systemd/system/etcd.service
+  notify:
+    - reload systemd
+    - etcd restart service
+  tags: configure
+
+- name: reload systemd
+  command: systemctl daemon-reload
+
+- name: Start etcd
+  service: name=etcd state=started
+  tags: configure
+
+- name: Enable etcd
+  service: name=etcd enabled=yes

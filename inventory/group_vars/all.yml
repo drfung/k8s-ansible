@@ -1,0 +1,155 @@
+###########################################################################################################################################
+################################################################systemc init  start #######################################################
+pamc_cloud_baseurl: http://10.21.21.30/pamc_cloud/
+registry_ip: 10.21.50.97
+################################################################systemc init  end ##########################################################
+###########################################################################################################################################
+
+
+
+###########################################################################################################################################
+################################################################etcd  start ###############################################################
+# etcd for k8s
+etcd_peer_port: 2380
+etcd_client_port: 2379
+
+
+###########################################################################################################################################
+################################################################kubernetes start ##########################################################
+# Version of Kubernetes binaries
+kube_version: 1.7.4
+
+#kube-etcd-cluster: {% for node in groups['etcd'] %}https://{{ node }}:{{ etcd_client_port }}{% if not loop.last %},{% endif %}{% endfor %}
+
+# will be used as the Internal dns domain name if DNS is enabled. Services
+# will be discoverable under <service-name>.<namespace>.svc.<domainname>, e.g.
+# myservice.default.svc.cluster.local
+cluster_name: tensorflow.pro.pamc
+
+# Set if you want to access kubernetes cluster via load balancer. The installer
+# assumes that a load balancer has been preconfigured or resolves to
+# kubenetes master
+#master_cluster_hostname: kubernetes-cluster.example.com
+
+# External fqdn used for the cluster (certificat only)
+#master_cluster_public_hostname: public-kubernetes
+
+# Port number for the load balanced master hostname.
+master_cluster_port: 6443
+
+
+
+# Kubernetes internal network for services.
+# Kubernetes services will get fake IP addresses from this range.
+# This range must not conflict with anything in your infrastructure. These
+# addresses do not need to be routable and must just be an unused block of space.
+kube_service_addresses: 10.254.0.0/16
+
+# Certificate authority private key should not be kept on server
+# but you probably want to keep it to generate user certificates. Set
+# that value to "true" to keep ca.key file on {{ kube_cert_dir}}.
+# It's recommanded to remove the private key from the server. So if you set
+# kube_cert_keep_ca to true, please copy the ca.key file somewhere that
+# is secured, and remove it from server.
+kube_cert_keep_ca: false
+
+kube_conf_dir: /root/.kube
+kube_conf_file: /root/.kube/config
+kube_api_insecure_port: 8080
+kube_api_secure_port: 6443
+
+
+# This directory is where all the additional config stuff goes
+# the kubernetes normally puts in /srv/kubernets.
+# This puts them in a sane location.
+# Editting this value will almost surely break something. Don't
+# change it. Things like the systemd scripts are hard coded to
+# look in here. Don't do it.
+kube_config_dir: /etc/kubernetes
+kube_interface: ens33
+
+# kube_config_dir: /etc/hacert
+################################################################kubernetes end ############################################################
+###########################################################################################################################################
+
+
+
+
+
+###########################################################################################################################################
+##############################################################  kube cert start ###########################################################
+# This directory is where all the additional scripts go
+# that Kubernetes normally puts in /srv/kubernetes.
+# This puts them in a sane location
+kube_script_dir: /usr/libexec/kubernetes
+harbor_cert_dir:  /etc/docker/certs.d/registry.pamc.xyz:4443
+
+
+# This is where all the cert scripts and certs will be located
+kube_cert_dir: "{{ kube_config_dir }}/certs"
+
+# The IP(s) for which the certificate will be valid
+kube_cert_ip: "{{ hostvars[inventory_hostname]['ansible_all_ipv4_addresses']|join (',') }}"
+
+# This is where all of the bearer tokens will be stored
+kube_token_dir: "{{ kube_config_dir }}/tokens"
+
+# This is where you can drop yaml/json files and the kubelet will run those
+# pods on startup
+kube_manifest_dir: "{{ kube_config_dir }}/manifests"
+
+# This is the group that the cert creation scripts chgrp the
+# cert files to. Not really changeable...
+kube_cert_group: kube-cert
+
+# Internal DNS domain name.
+# This domain must not be used in your network. Services will be discoverable
+# under <service-name>.<namespace>.<domainname>, e.g.
+# myservice.default.svc.cluster.local
+dns_domain: "{{ cluster_name }}"
+
+# IP address of the DNS server.
+# Kubernetes will create a pod with several containers, serving as the DNS
+# server and expose it under this IP address. The IP address must be from
+# the range specified as kube_service_addresses. This magic will actually
+# pick the 10th ip address in the kube_service_addresses range and use that.
+dns_server: "{{ kube_service_addresses|ipaddr('net')|ipaddr(2)|ipaddr('address') }}"
+
+cluster_hostname: "{{ master_cluster_hostname | default('') }}"
+
+cluster_port: "{{ master_cluster_port | default('6443') }}"
+##############################################################  kube cert end ###########################################################
+###########################################################################################################################################
+
+
+###########################################################################################################################################
+################################################################docker start ##############################################################
+docker_rpms:
+  - docker-engine-1.12.6-1.el7.centos.x86_64.rpm
+  - docker-engine-selinux-1.12.6-1.el7.centos.noarch.rpm
+
+docker_confi_dir: /etc/docker
+################################################################docker end ################################################################
+###########################################################################################################################################
+
+
+###########################################################################################################################################
+#################################################################haproxy start ##########################################################
+ha_cert_dir: "/etc/hacert"
+#################################################################haproxy end ############################################################
+############################################################################################################################################
+
+###########################################################################################################################################
+################################################################keepalived start ##########################################################
+kube_keepalived_interface: ens33
+kube_keepalived_vid: 63
+kube_vip: 192.168.75.10
+kube_auth_pass: production-pamc
+################################################################keepalived end ############################################################
+###########################################################################################################################################
+
+###########################################################################################################################################
+################################################################kubernetes-addons start ###################################################
+create_harbor_secret: true
+################################################################kubernetes-addons end #####################################################
+###########################################################################################################################################
