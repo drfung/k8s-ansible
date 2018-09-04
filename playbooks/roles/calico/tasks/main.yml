@@ -18,5 +18,8 @@
 - name: calico rbac
   copy: src=calico-rbac.yaml dest=/tmp/calico/
 
+- name: calico policy
+  copy: src=global.yaml dest=/tmp/calico/
+
 - name: Install Calico
   command: kubectl apply -f /tmp/calico
